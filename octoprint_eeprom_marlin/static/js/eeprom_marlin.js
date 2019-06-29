@@ -20,7 +20,7 @@ $(function() {
             self.eepromM92RegEx = /M92 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Steps per unit
             self.eepromM200RegEx = /M200 ([D])(.*)/;//Filament settings
             self.eepromM201RegEx = /M201 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Maximum Acceleration (units/s2)
-            self.eepromM203RegEx = /M203 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Maximum feedrates (units/s)            
+            self.eepromM203RegEx = /M203 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Maximum feedrates (units/s)
             self.eepromM206RegEx = /M206 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//Home offset
             self.eepromM304RegEx = /M304 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;//bed PID settings
             self.eepromM420RegEx = /M420 ([S])([0-1]*)[^0-9]*([Z]*)(.*)/;//Auto Bed Leveling
@@ -31,8 +31,8 @@ $(function() {
             // Specific versions
             if(version == "Marlin bugfix-2.0.x") {
                 self.eepromM900RegEx = /M900 ([K])([0-9.]+)(.*)/;//bugfix2.0.x
-                //Advanced: B<min_segment_time_us> S<min_feedrate> T<min_travel_feedrate> X<max_x_jerk> Y<max_y_jerk> Z<max_z_jerk> E<max_e_jerk>
-                self.eepromM205RegEx = /M205 ([B])(.*)[^0-9]([S])(.*)[^0-9]([T])(.*)[^0-9]([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
+                //Advanced: B<min_segment_time_us> S<min_feedrate> T<min_travel_feedrate> X<max_x_jerk> Y<max_y_jerk> Z<max_z_jerk> E<max_e_jerk> J<junction_deviation>
+                self.eepromM205RegEx = /M205 ([B])([0-9.]*) ([S])([0-9.]*) ([T])([0-9.]*) ([X])?([0-9.]*)? ?([Y])?([0-9.]*)? ?([Z])?([0-9.]*)? ?([E])?([0-9.]*)? ?([J])?([0-9.]*)?/;
                 self.eepromM145S0RegEx = /M145 S0 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;//Material heatup parameters
                 self.eepromM145S1RegEx = /M145 S1 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;//Material heatup parameters
                 self.eepromM145S2RegEx = /M145 S2 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;//Material heatup parameters
@@ -398,16 +398,7 @@ $(function() {
                     label: 'Linear Advance K',
                     origValue: ((restoreBackup) ? '' : match[2]),
                     value: match[2],
-                    unit: 'mm',
-                    description: ''
-                });
-
-                self.eepromDataLinear.push({
-                    dataType: 'M900 R',
-                    label: 'Linear Ratio',
-                    origValue: ((restoreBackup) ? '' : match[4]),
-                    value: match[4],
-                    unit: 'mm',
+                    unit: '',
                     description: ''
                 });
             }
@@ -457,15 +448,15 @@ $(function() {
                     description: ''
                 });
             }
-            
+
             if (self.firmware_name() == 'Marlin 1.1.0-RC8' || self.firmware_name() == 'Marlin 1.1.1' || self.firmware_name() == 'Marlin 1.1.2' || self.firmware_name() == 'Marlin 1.1.3' || self.firmware_name() == 'Marlin 1.1.4' || self.firmware_name() == 'Marlin 1.1.5' || self.firmware_name() == 'Marlin 1.1.6' || self.firmware_name() == 'Marlin 1.1.7' || self.firmware_name() == 'Marlin 1.1.8' || self.firmware_name() == 'Marlin bugfix-2.0.x' || self.firmware_name() == 'Marlin bugfix-2.0.x (Github)') {
                 console.log(self.firmware_name());
                 // M205 Advanced variables
                 match = self.eepromM205RegEx.exec(line);
                 if (match) {
                     self.eepromData1.push({
-                        dataType: 'M205 S',
-                        label: 'Min feedrate',
+                        dataType: 'M205 B',
+                        label: 'Min segment',
                         origValue: ((restoreBackup) ? '' : match[2]),
                         value: match[2],
                         unit: 'mm/s',
@@ -473,8 +464,8 @@ $(function() {
                     });
 
                     self.eepromData1.push({
-                        dataType: 'M205 T',
-                        label: 'Min travel',
+                        dataType: 'M205 S',
+                        label: 'Min feedrate',
                         origValue: ((restoreBackup) ? '' : match[4]),
                         value: match[4],
                         unit: 'mm/s',
@@ -482,49 +473,74 @@ $(function() {
                     });
 
                     self.eepromData1.push({
-                        dataType: 'M205 B',
-                        label: 'Min segment',
+                        dataType: 'M205 T',
+                        label: 'Min travel',
                         origValue: ((restoreBackup) ? '' : match[6]),
                         value: match[6],
                         unit: 'mm/s',
                         description: ''
                     });
 
-                    self.eepromData2.push({
-                        dataType: 'M205 X',
-                        label: 'Max X jerk',
-                        origValue: ((restoreBackup) ? '' : match[8]),
-                        value: match[8],
-                        unit: 'mm/s',
-                        description: ''
-                    });
+                    if(match[7] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 X',
+                          label: 'Max X jerk',
+                          origValue: ((restoreBackup) ? '' : match[8]),
+                          value: match[8],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
 
-                    self.eepromData2.push({
-                        dataType: 'M205 Y',
-                        label: 'Max Y jerk',
-                        origValue: ((restoreBackup) ? '' : match[10]),
-                        value: match[10],
-                        unit: 'mm/s',
-                        description: ''
-                    });
 
-                    self.eepromData2.push({
-                        dataType: 'M205 Z',
-                        label: 'Max Z jerk',
-                        origValue: ((restoreBackup) ? '' : match[12]),
-                        value: match[12],
-                        unit: 'mm/s',
-                        description: ''
-                    });
+                    if(match[9] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 Y',
+                          label: 'Max Y jerk',
+                          origValue: ((restoreBackup) ? '' : match[10]),
+                          value: match[10],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
 
-                    self.eepromData2.push({
-                        dataType: 'M205 E',
-                        label: 'Max E jerk',
-                        origValue: ((restoreBackup) ? '' : match[14]),
-                        value: match[14],
-                        unit: 'mm/s',
-                        description: ''
-                    });
+                    if(match[11] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 Z',
+                          label: 'Max Z jerk',
+                          origValue: ((restoreBackup) ? '' : match[12]),
+                          value: match[12],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
+
+                    if(match[13] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 E',
+                          label: 'Max E jerk',
+                          origValue: ((restoreBackup) ? '' : match[14]),
+                          value: match[14],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
+
+                    if(match[15] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 J',
+                          label: 'Junction Deviation',
+                          origValue: ((restoreBackup) ? '' : match[16]),
+                          value: match[16],
+                          unit: 'mm',
+                          description: ''
+                      });
+                    }
                 }
 
                 // M204 Acceleration
