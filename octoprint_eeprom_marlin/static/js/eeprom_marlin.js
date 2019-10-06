@@ -24,7 +24,7 @@ $(function() {
             self.eepromM206RegEx = /M206 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//Home offset
             self.eepromM304RegEx = /M304 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;//bed PID settings
             self.eepromM420RegEx = /M420 ([S])([0-1]*)[^0-9]*([Z]*)(.*)/;//Auto Bed Leveling
-            self.eepromM851RegEx = /M851 ([Z])(.*)/;//Z-Probe Offset (mm)
+            self.eepromM851RegEx = /M851 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//Z-Probe Offset (mm)
             self.eepromM665RegEx = /M665 ([L])(.*)[^0-9]([R])(.*)[^0-9]([H])(.*)[^0-9]([S])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//delta config
             self.eepromM666RegEx = /M666 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//delta Enstop adjustement
 
@@ -98,6 +98,7 @@ $(function() {
 
         self.eepromData1 = ko.observableArray([]);
         self.eepromData2 = ko.observableArray([]);
+        self.eepromDataProbeOffset = ko.observableArray([]);
         self.eepromDataLevel = ko.observableArray([]);
         self.eepromDataSteps = ko.observableArray([]);
         self.eepromDataFRates = ko.observableArray([]);
@@ -257,14 +258,30 @@ $(function() {
                 });
             }
 
-            // M851 Z-Probe Offset
+            // M851 Probe Offset
             match = self.eepromM851RegEx.exec(line);
             if (match) {
-                self.eepromData1.push({
-                    dataType: 'M851 Z',
-                    label: 'Z-Probe Offset',
+                self.eepromDataProbeOffset.push({
+                    dataType: 'M851 X',
+                    label: 'X-Probe Offset',
                     origValue: ((restoreBackup) ? '' : match[2]),
                     value: match[2],
+                    unit: 'mm',
+                    description: ''
+                });              
+                 self.eepromDataProbeOffset.push({
+                    dataType: 'M851 Y',
+                    label: 'Y-Probe Offset',
+                    origValue: ((restoreBackup) ? '' : match[4]),
+                    value: match[4],
+                    unit: 'mm',
+                    description: ''
+                });               
+                self.eepromDataProbeOffset.push({
+                    dataType: 'M851 Z',
+                    label: 'Z-Probe Offset',
+                    origValue: ((restoreBackup) ? '' : match[6]),
+                    value: match[6],
                     unit: 'mm',
                     description: ''
                 });
@@ -1461,6 +1478,7 @@ $(function() {
 
             self.eepromData1([]);
             self.eepromData2([]);
+            self.eepromDataProbeOffset([]);
             self.eepromDataLevel([]);
             self.eepromDataSteps([]);
             self.eepromDataFRates([]);
@@ -1530,6 +1548,7 @@ $(function() {
 
                         self.eepromData1([]);
                         self.eepromData2([]);
+                        self.eepromDataProbeOffset([]);
                         self.eepromDataLevel([]);
                         self.eepromDataSteps([]);
                         self.eepromDataFRates([]);
@@ -1576,6 +1595,7 @@ $(function() {
 
             self.eepromData1([]);
             self.eepromData2([]);
+            self.eepromDataProbeOffset([]);
             self.eepromDataLevel([]);
             self.eepromDataSteps([]);
             self.eepromDataFRates([]);
@@ -1613,6 +1633,14 @@ $(function() {
             });
 
             eepromData = self.eepromData2();
+            _.each(eepromData, function(data) {
+                if (data.origValue != data.value) {
+                    self._requestSaveDataToEeprom(data.dataType, data.value);
+                    data.origValue = data.value;
+                }
+            });
+
+            eepromData = self.eepromDataProbeOffset();
             _.each(eepromData, function(data) {
                 if (data.origValue != data.value) {
                     self._requestSaveDataToEeprom(data.dataType, data.value);
