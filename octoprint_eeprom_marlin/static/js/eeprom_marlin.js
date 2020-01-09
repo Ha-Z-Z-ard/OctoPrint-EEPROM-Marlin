@@ -13,30 +13,39 @@ $(function() {
         self.stateControls = true;
 
         self.setRegExVars = function(version) {
+            //console.log(version);
             // All versions
             self.eepromM501RegEx = /M501/;
             self.eepromOKRegEx = /ok/;
-            self.eepromM92RegEx = /M92 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
-            self.eepromM203RegEx = /M203 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
-            self.eepromM201RegEx = /M201 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
-            self.eepromM206RegEx = /M206 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;
-            self.eepromM851RegEx = /M851 ([Z])(.*)/;
-            self.eepromM200RegEx = /M200 ([D])(.*)/;
-            self.eepromM666RegEx = /M666 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;
-            self.eepromM304RegEx = /M304 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;
-            self.eepromM665RegEx = /M665 ([L])(.*)[^0-9]([R])(.*)[^0-9]([H])(.*)[^0-9]([S])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;
-            self.eepromM420RegEx = /M420 ([S])([0-1]*)[^0-9]*([Z]*)(.*)/;
-            self.eepromM900RegEx = /M900 ([K])(.*)[^0-9]([R])(.*)/;
-
+            self.eepromM92RegEx = /M92 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Steps per unit
+            self.eepromM200RegEx = /M200 ([D])(.*)/;//Filament settings
+            self.eepromM201RegEx = /M201 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Maximum Acceleration (units/s2)
+            self.eepromM203RegEx = /M203 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;//Maximum feedrates (units/s)
+            self.eepromM206RegEx = /M206 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//Home offset
+            self.eepromM304RegEx = /M304 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;//bed PID settings
+            self.eepromM420RegEx = /M420 ([S])([0-1]*)[^0-9]*([Z]*)(.*)/;//Auto Bed Leveling
+            self.eepromM851RegEx = /M851 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//Z-Probe Offset (mm)
+            self.eepromM665RegEx = /M665 ([L])(.*)[^0-9]([R])(.*)[^0-9]([H])(.*)[^0-9]([S])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//delta config
+            self.eepromM666RegEx = /M666 ([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)/;//delta Enstop adjustement
 
             // Specific versions
-            if (version == 'latest' || version == 'Marlin 1.1.0-RC8' || version == 'Marlin 1.1.1' || version == 'Marlin 1.1.2' || version == 'Marlin 1.1.3' || version == 'Marlin 1.1.4' || version == 'Marlin 1.1.5' || version == 'Marlin 1.1.6' || version == 'Marlin 1.1.7' || version == 'Marlin 1.1.8') {
+            if(version == "Marlin bugfix-2.0.x") {
+                self.eepromM900RegEx = /M900 ([K])([0-9.]+)(.*)/;//bugfix2.0.x
+                //Advanced: B<min_segment_time_us> S<min_feedrate> T<min_travel_feedrate> X<max_x_jerk> Y<max_y_jerk> Z<max_z_jerk> E<max_e_jerk> J<junction_deviation>
+                self.eepromM205RegEx = /M205 ([B])([0-9.]*) ([S])([0-9.]*) ([T])([0-9.]*) ([X])?([0-9.]*)? ?([Y])?([0-9.]*)? ?([Z])?([0-9.]*)? ?([E])?([0-9.]*)? ?([J])?([0-9.]*)?/;
+                self.eepromM145S0RegEx = /M145 S0 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;//Material heatup parameters
+                self.eepromM145S1RegEx = /M145 S1 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;//Material heatup parameters
+                self.eepromM145S2RegEx = /M145 S2 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;//Material heatup parameters
+                self.eepromM301RegEx = /M301 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;//hotend PID settings
+                self.eepromM204RegEx = /M204 ([P])(.*)[^0-9]([R])(.*)[^0-9]([T])(.*)/;//Acceleration (units/s2): P<print_accel> R<retract_accel> T<travel_accel>
+            } else if (version == 'latest' || version == 'Marlin 1.1.0-RC8' || version == 'Marlin 1.1.1' || version == 'Marlin 1.1.2' || version == 'Marlin 1.1.3' || version == 'Marlin 1.1.4' || version == 'Marlin 1.1.5' || version == 'Marlin 1.1.6' || version == 'Marlin 1.1.7' || version == 'Marlin 1.1.8') {
                 self.eepromM205RegEx = /M205 ([S])(.*)[^0-9]([T])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
                 self.eepromM145S0RegEx = /M145 S0 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
                 self.eepromM145S1RegEx = /M145 S1 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
                 self.eepromM145S2RegEx = /M145 S2 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
                 self.eepromM301RegEx = /M301 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;
                 self.eepromM204RegEx = /M204 ([P])(.*)[^0-9]([R])(.*)[^0-9]([T])(.*)/;
+                self.eepromM900RegEx = /M900 ([K])(.*)[^0-9]([R])(.*)/;//Linear Advance
             } else if (version == 'Marlin 1.1.0-RC1' || version == 'Marlin 1.1.0-RC2' || version == 'Marlin 1.1.0-RC3' || version == 'Marlin 1.1.0-RC4' || version == 'Marlin 1.1.0-RC5' || version == 'Marlin 1.1.0-RC6' || version == 'Marlin 1.1.0-RC7') {
                 self.eepromM205RegEx = /M205 ([S])(.*)[^0-9]([T])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
                 self.eepromM145S0RegEx = /M145 M0 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
@@ -44,10 +53,12 @@ $(function() {
                 self.eepromM145S2RegEx = /M145 M2 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
                 self.eepromM301RegEx = /M301 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)[^0-9]([C])(.*)[^0-9]([L])(.*)/;
                 self.eepromM204RegEx = /M204 ([P])(.*)[^0-9]([R])(.*)[^0-9]([T])(.*)/;
+                self.eepromM900RegEx = /M900 ([K])(.*)[^0-9]([R])(.*)/;//Linear Advance
             } else if (version == 'Marlin 1.0.2+' || version == 'Marlin V1.0.2;' || version == 'Marlin 1.0.2' || version == 'Marlin V1;') {
                 self.eepromM204RegEx = /M204 ([S])(.*)[^0-9]([T])(.*)/;
                 self.eepromM205RegEx = /M205 ([S])(.*)[^0-9]([T])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
                 self.eepromM301RegEx = /M301 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;
+                self.eepromM900RegEx = /M900 ([K])(.*)[^0-9]([R])(.*)/;//Linear Advance
             } else {
                 self.eepromM205RegEx = /M205 ([S])(.*)[^0-9]([T])(.*)[^0-9]([B])(.*)[^0-9]([X])(.*)[^0-9]([Y])(.*)[^0-9]([Z])(.*)[^0-9]([E])(.*)/;
                 self.eepromM145S0RegEx = /M145 S0 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
@@ -55,6 +66,7 @@ $(function() {
                 self.eepromM145S2RegEx = /M145 S2 ([H])(.*)[^0-9]([B])(.*)[^0-9]([F])(.*)/;
                 self.eepromM301RegEx = /M301 ([P])(.*)[^0-9]([I])(.*)[^0-9]([D])(.*)/;
                 self.eepromM204RegEx = /M204 ([P])(.*)[^0-9]([R])(.*)[^0-9]([T])(.*)/;
+                self.eepromM900RegEx = /M900 ([K])(.*)[^0-9]([R])(.*)/;//Linear Advance
             }
         };
 
@@ -67,7 +79,8 @@ $(function() {
         self.firmwareCapRegEx = /Cap:([^\s]*)/i;
         self.marlinRegEx = /Marlin[^\s]*/i;
 
-        self.setRegExVars('latest');
+        //self.setRegExVars('latest');
+        self.setRegExVars('Marlin bugfix-2.0.x');
 
         self.isMarlinFirmware = ko.observable(false);
         self.isMarlinFirmware.subscribe(function (newValue) {
@@ -85,6 +98,7 @@ $(function() {
 
         self.eepromData1 = ko.observableArray([]);
         self.eepromData2 = ko.observableArray([]);
+        self.eepromDataProbeOffset = ko.observableArray([]);
         self.eepromDataLevel = ko.observableArray([]);
         self.eepromDataSteps = ko.observableArray([]);
         self.eepromDataFRates = ko.observableArray([]);
@@ -244,14 +258,30 @@ $(function() {
                 });
             }
 
-            // M851 Z-Probe Offset
+            // M851 Probe Offset
             match = self.eepromM851RegEx.exec(line);
             if (match) {
-                self.eepromData1.push({
-                    dataType: 'M851 Z',
-                    label: 'Z-Probe Offset',
+                self.eepromDataProbeOffset.push({
+                    dataType: 'M851 X',
+                    label: 'X-Probe Offset',
                     origValue: ((restoreBackup) ? '' : match[2]),
                     value: match[2],
+                    unit: 'mm',
+                    description: ''
+                });              
+                 self.eepromDataProbeOffset.push({
+                    dataType: 'M851 Y',
+                    label: 'Y-Probe Offset',
+                    origValue: ((restoreBackup) ? '' : match[4]),
+                    value: match[4],
+                    unit: 'mm',
+                    description: ''
+                });               
+                self.eepromDataProbeOffset.push({
+                    dataType: 'M851 Z',
+                    label: 'Z-Probe Offset',
+                    origValue: ((restoreBackup) ? '' : match[6]),
+                    value: match[6],
                     unit: 'mm',
                     description: ''
                 });
@@ -385,16 +415,7 @@ $(function() {
                     label: 'Linear Advance K',
                     origValue: ((restoreBackup) ? '' : match[2]),
                     value: match[2],
-                    unit: 'mm',
-                    description: ''
-                });
-
-                self.eepromDataLinear.push({
-                    dataType: 'M900 R',
-                    label: 'Linear Ratio',
-                    origValue: ((restoreBackup) ? '' : match[4]),
-                    value: match[4],
-                    unit: 'mm',
+                    unit: '',
                     description: ''
                 });
             }
@@ -445,13 +466,14 @@ $(function() {
                 });
             }
 
-            if (self.firmware_name() == 'Marlin 1.1.0-RC8' || self.firmware_name() == 'Marlin 1.1.1' || self.firmware_name() == 'Marlin 1.1.2' || self.firmware_name() == 'Marlin 1.1.3' || self.firmware_name() == 'Marlin 1.1.4' || self.firmware_name() == 'Marlin 1.1.5' || self.firmware_name() == 'Marlin 1.1.6' || self.firmware_name() == 'Marlin 1.1.7' || self.firmware_name() == 'Marlin 1.1.8') {
+            if (self.firmware_name() == 'Marlin 1.1.0-RC8' || self.firmware_name() == 'Marlin 1.1.1' || self.firmware_name() == 'Marlin 1.1.2' || self.firmware_name() == 'Marlin 1.1.3' || self.firmware_name() == 'Marlin 1.1.4' || self.firmware_name() == 'Marlin 1.1.5' || self.firmware_name() == 'Marlin 1.1.6' || self.firmware_name() == 'Marlin 1.1.7' || self.firmware_name() == 'Marlin 1.1.8' || self.firmware_name() == 'Marlin bugfix-2.0.x' || self.firmware_name() == 'Marlin bugfix-2.0.x (Github)') {
+                console.log(self.firmware_name());
                 // M205 Advanced variables
                 match = self.eepromM205RegEx.exec(line);
                 if (match) {
                     self.eepromData1.push({
-                        dataType: 'M205 S',
-                        label: 'Min feedrate',
+                        dataType: 'M205 B',
+                        label: 'Min segment',
                         origValue: ((restoreBackup) ? '' : match[2]),
                         value: match[2],
                         unit: 'mm/s',
@@ -459,8 +481,8 @@ $(function() {
                     });
 
                     self.eepromData1.push({
-                        dataType: 'M205 T',
-                        label: 'Min travel',
+                        dataType: 'M205 S',
+                        label: 'Min feedrate',
                         origValue: ((restoreBackup) ? '' : match[4]),
                         value: match[4],
                         unit: 'mm/s',
@@ -468,49 +490,74 @@ $(function() {
                     });
 
                     self.eepromData1.push({
-                        dataType: 'M205 B',
-                        label: 'Min segment',
+                        dataType: 'M205 T',
+                        label: 'Min travel',
                         origValue: ((restoreBackup) ? '' : match[6]),
                         value: match[6],
                         unit: 'mm/s',
                         description: ''
                     });
 
-                    self.eepromData2.push({
-                        dataType: 'M205 X',
-                        label: 'Max X jerk',
-                        origValue: ((restoreBackup) ? '' : match[8]),
-                        value: match[8],
-                        unit: 'mm/s',
-                        description: ''
-                    });
+                    if(match[7] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 X',
+                          label: 'Max X jerk',
+                          origValue: ((restoreBackup) ? '' : match[8]),
+                          value: match[8],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
 
-                    self.eepromData2.push({
-                        dataType: 'M205 Y',
-                        label: 'Max Y jerk',
-                        origValue: ((restoreBackup) ? '' : match[10]),
-                        value: match[10],
-                        unit: 'mm/s',
-                        description: ''
-                    });
 
-                    self.eepromData2.push({
-                        dataType: 'M205 Z',
-                        label: 'Max Z jerk',
-                        origValue: ((restoreBackup) ? '' : match[12]),
-                        value: match[12],
-                        unit: 'mm/s',
-                        description: ''
-                    });
+                    if(match[9] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 Y',
+                          label: 'Max Y jerk',
+                          origValue: ((restoreBackup) ? '' : match[10]),
+                          value: match[10],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
 
-                    self.eepromData2.push({
-                        dataType: 'M205 E',
-                        label: 'Max E jerk',
-                        origValue: ((restoreBackup) ? '' : match[14]),
-                        value: match[14],
-                        unit: 'mm/s',
-                        description: ''
-                    });
+                    if(match[11] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 Z',
+                          label: 'Max Z jerk',
+                          origValue: ((restoreBackup) ? '' : match[12]),
+                          value: match[12],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
+
+                    if(match[13] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 E',
+                          label: 'Max E jerk',
+                          origValue: ((restoreBackup) ? '' : match[14]),
+                          value: match[14],
+                          unit: 'mm/s',
+                          description: ''
+                      });
+                    }
+
+                    if(match[15] != undefined)
+                    {
+                      self.eepromData2.push({
+                          dataType: 'M205 J',
+                          label: 'Junction Deviation',
+                          origValue: ((restoreBackup) ? '' : match[16]),
+                          value: match[16],
+                          unit: 'mm',
+                          description: ''
+                      });
+                    }
                 }
 
                 // M204 Acceleration
@@ -1294,6 +1341,7 @@ $(function() {
                     if (match) {
                         self.FIRMWARE_NAME(match[1] + ' ' + match[2]);
                         self.FIRMWARE_INFO(line.replace('Recv: ', ''));
+                        console.debug("EEPROM_plugins set regexvars");
                         self.setRegExVars(self.firmware_name());
                         console.debug('Firmware: ' + self.firmware_name());
                         if (self.marlinRegEx.exec(match[0]))
@@ -1430,6 +1478,7 @@ $(function() {
 
             self.eepromData1([]);
             self.eepromData2([]);
+            self.eepromDataProbeOffset([]);
             self.eepromDataLevel([]);
             self.eepromDataSteps([]);
             self.eepromDataFRates([]);
@@ -1499,6 +1548,7 @@ $(function() {
 
                         self.eepromData1([]);
                         self.eepromData2([]);
+                        self.eepromDataProbeOffset([]);
                         self.eepromDataLevel([]);
                         self.eepromDataSteps([]);
                         self.eepromDataFRates([]);
@@ -1545,6 +1595,7 @@ $(function() {
 
             self.eepromData1([]);
             self.eepromData2([]);
+            self.eepromDataProbeOffset([]);
             self.eepromDataLevel([]);
             self.eepromDataSteps([]);
             self.eepromDataFRates([]);
@@ -1582,6 +1633,14 @@ $(function() {
             });
 
             eepromData = self.eepromData2();
+            _.each(eepromData, function(data) {
+                if (data.origValue != data.value) {
+                    self._requestSaveDataToEeprom(data.dataType, data.value);
+                    data.origValue = data.value;
+                }
+            });
+
+            eepromData = self.eepromDataProbeOffset();
             _.each(eepromData, function(data) {
                 if (data.origValue != data.value) {
                     self._requestSaveDataToEeprom(data.dataType, data.value);
